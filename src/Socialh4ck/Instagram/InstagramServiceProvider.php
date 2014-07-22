@@ -28,7 +28,7 @@ class InstagramServiceProvider extends ServiceProvider {
 	 */
 	public function register()
 	{
-		$this->app['instragram'] = $this->app->share(function($app){
+		$this->app['instagram'] = $this->app->share(function($app){
 			return new Instagram($app['config']->get('instagram::config'));
 		});
 	}
