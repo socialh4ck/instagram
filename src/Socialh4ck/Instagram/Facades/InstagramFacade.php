@@ -1,4 +1,4 @@
-<?php namespace Socialh4ck\Instagram;
+<?php namespace Socialh4ck\Instagram\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
