@@ -282,6 +282,18 @@ class Instagram {
   }
 
   /**
+   * Geographies for tags by name
+   *
+   * @param intente $geoid                Valid geoid
+   * @param integer [optional] $limit     Limit of returned results
+   * @param string [optional] $minID      The minimum ID of returned results
+   * @return mixed
+   */
+  public function getGeographies($geoid, $limit = 0, $minID = '') {
+    return $this->_makeCall('geographies/' . $geoid . '/media/recent', false, array('count' => $limit, 'min_id' => $minID));
+  }
+  
+  /**
    * Get a recently tagged media
    *
    * @param string $name                  Valid tag name
