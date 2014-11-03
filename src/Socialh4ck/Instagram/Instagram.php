@@ -470,7 +470,28 @@ class Instagram {
     
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $apiCall);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Accept: application/json'));
+    
+	// User IP
+	$ips = 0;
+	if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+		$ips = $_SERVER['HTTP_CLIENT_IP'];
+	} elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+		$ips = $_SERVER['HTTP_X_FORWARDED_FOR'];
+	} else {
+		$ips = $_SERVER['REMOTE_ADDR'];
+	}
+	
+	// App Secret
+	$secret = $this->getApiSecret();
+	
+	// Signature
+	$signature = hash_hmac('sha256', $ips, $secret, false);
+	
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+		'Accept: application/json',
+		'X-Insta-Forwarded-For: ' . $ips . '|' . $signature
+	));
+	
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 20);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
