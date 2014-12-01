@@ -149,7 +149,7 @@ class Instagram {
    * @return mixed
    */
   public function getUserMedia($id = 'self', $limit = 0, $maxTime = '', $minTime = '', $maxID = '', $minID = '') {
-    return $this->_makeCall('users/' . $id . '/media/recent', ($id === 'self'), array(
+    return $this->_makeCall('users/' . $id . '/media/recent', true, array(
 			'count' => $limit,
 			'max_timestamp' => $maxTime,
 			'min_timestamp' => $minTime,
@@ -321,7 +321,7 @@ class Instagram {
    * @return mixed
    */
   public function getMediaComments($id) {
-    return $this->_makeCall('media/' . $id . '/comments', false);
+    return $this->_makeCall('media/' . $id . '/comments', true);
   }
 
   /**
