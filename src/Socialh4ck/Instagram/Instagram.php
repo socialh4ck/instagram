@@ -298,10 +298,11 @@ class Instagram {
    *
    * @param string $name                  Valid tag name
    * @param integer [optional] $limit     Limit of returned results
+   * @param string [optional] $minID      The minimum ID of returned results
    * @return mixed
    */
-  public function getTagMedia($name, $limit = 0) {
-    return $this->_makeCall('tags/' . $name . '/media/recent', false, array('count' => $limit));
+  public function getTagMedia($name, $limit = 0, $minID=0) {
+    return $this->_makeCall('tags/' . $name . '/media/recent', false, array('count' => $limit, 'min_tag_id'=>$minID));
   }
 
   /**
