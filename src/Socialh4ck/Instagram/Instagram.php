@@ -4,7 +4,7 @@
  * Instagram API class
  * API Documentation: http://instagram.com/developer/
  * Class Documentation: https://github.com/cosenary/Instagram-PHP-API/tree/dev
- * 
+ *
  * @author Christian Metz
  * @since 30.10.2011
  * @copyright Christian Metz - MetzWeb Networks 2011-2014
@@ -30,42 +30,42 @@ class Instagram {
 
   /**
    * The Instagram API Key
-   * 
+   *
    * @var string
    */
   private $_apikey;
 
   /**
    * The Instagram OAuth API secret
-   * 
+   *
    * @var string
    */
   private $_apisecret;
 
   /**
    * The callback URL
-   * 
+   *
    * @var string
    */
   private $_callbackurl;
 
   /**
    * The user access token
-   * 
+   *
    * @var string
    */
   private $_accesstoken;
 
   /**
    * Available scopes
-   * 
+   *
    * @var array
    */
   private $_scopes = array('basic', 'likes', 'comments', 'relationships');
 
   /**
    * Available actions
-   * 
+   *
    * @var array
    */
   private $_actions = array('follow', 'unfollow', 'block', 'unblock', 'approve', 'deny');
@@ -108,11 +108,14 @@ class Instagram {
    * Search for a user
    *
    * @param string $name                  Instagram username
-   * @param integer [optional] $limit     Limit of returned results
+   * @param integer [optional] $count     Limit of returned results
    * @return mixed
    */
-  public function searchUser($name, $limit = 0) {
-    return $this->_makeCall('users/search', false, array('q' => $name, 'count' => $limit));
+  public function searchUser($q, $count = 0) {
+    return $this->_makeCall('users/search', false, array(
+			'q' => $q,
+			'count' => $count
+		));
   }
 
   /**
@@ -123,72 +126,84 @@ class Instagram {
    */
   public function getUser($id = 0) {
     $auth = false;
-    if ($id === 0 && isset($this->_accesstoken)) { $id = 'self'; $auth = true; }
+    if ($id === 0 && isset($this->_accesstoken)) {
+			$id = 'self';
+			$auth = true;
+		}
     return $this->_makeCall('users/' . $id, $auth);
   }
 
   /**
    * Get user activity feed
    *
-   * @param integer [optional] $limit     Limit of returned results
+   * @param integer [optional] $count     Limit of returned results
+   * @param string [optional] $maxID      The maximum ID of returned results
+   * @param string [optional] $minID      The minimum ID of returned results
    * @return mixed
    */
-  public function getUserFeed($limit = 0) {
-    return $this->_makeCall('users/self/feed', true, array('count' => $limit));
+  public function getUserFeed($count = 0, $minID = 0, $maxID = 0) {
+    return $this->_makeCall('users/self/feed', true, array(
+			'count' => $count,
+			'min_id' => $minID,
+			'max_id' => $maxID
+		));
   }
 
   /**
    * Get user recent media
    *
    * @param integer [optional] $id        Instagram user ID
-   * @param integer [optional] $limit     Limit of returned results
+   * @param integer [optional] $count     Limit of returned results
    * @param string [optional] $maxTime    The maximum timestamp of returned results
    * @param string [optional] $minTime    The minimum timestamp of returned results
    * @param string [optional] $maxID      The maximum ID of returned results
    * @param string [optional] $minID      The minimum ID of returned results
    * @return mixed
    */
-  public function getUserMedia($id = 'self', $limit = 0, $maxTime = '', $minTime = '', $maxID = '', $minID = '') {
+  public function getUserMedia($id = 'self', $count = 0, $maxTime = '', $minTime = '', $minID = 0, $maxID = 0) {
     return $this->_makeCall('users/' . $id . '/media/recent', true, array(
-			'count' => $limit,
-			'max_timestamp' => $maxTime,
+			'count' => $count,
 			'min_timestamp' => $minTime,
-			'max_id' => $maxID,
-			'min_id' => $minID
-		)
-	);
+			'max_timestamp' => $maxTime,
+			'min_id' => $minID,
+			'max_id' => $maxID
+		));
   }
 
   /**
    * Get the liked photos of a user
    *
-   * @param integer [optional] $limit     Limit of returned results
+   * @param integer [optional] $count     Limit of returned results
+   * @param string [optional] $maxID      The maximum ID of returned results
    * @return mixed
    */
-  public function getUserLikes($limit = 0) {
-    return $this->_makeCall('users/self/media/liked', true, array('count' => $limit));
+  public function getUserLikes($count = 0, $maxID = 0) {
+    return $this->_makeCall('users/self/media/liked', true, array(
+			'count' => $count,
+			'max_like_id' => $maxID
+		));
   }
 
   /**
    * Get the list of users this user follows
    *
    * @param integer [optional] $id        Instagram user ID
-   * @param integer [optional] $limit     Limit of returned results
+   * @param integer [optional] $count     Limit of returned results
    * @return mixed
    */
-  public function getUserFollows($id = 'self', $limit = 0) {
-    return $this->_makeCall('users/' . $id . '/follows', true, array('count' => $limit));
+  public function getUserFollows($id = 'self', $count = 0) {
+    return $this->_makeCall('users/' . $id . '/follows', true, array('count' => $count));
   }
 
   /**
    * Get the list of users this user is followed by
    *
    * @param integer [optional] $id        Instagram user ID
-   * @param integer [optional] $limit     Limit of returned results
+   * @param integer [optional] $count     Limit of returned results
    * @return mixed
    */
-  public function getUserFollower($id = 'self', $limit = 0) {
-    return $this->_makeCall('users/' . $id . '/followed-by', true, array('count' => $limit));
+  public function getUserFollower($id = 'self', $count = 0) {
+    return $this->_makeCall('users/' . $id . '/followed-by', true, array('count' => $count));
   }
 
   /**
@@ -226,7 +241,13 @@ class Instagram {
    * @return mixed
    */
   public function searchMedia($lat, $lng, $distance = 1000, $minTimestamp = NULL, $maxTimestamp = NULL) {
-    return $this->_makeCall('media/search', false, array('lat' => $lat, 'lng' => $lng, 'distance' => $distance, 'min_timestamp' => $minTimestamp, 'max_timestamp' => $maxTimestamp));
+    return $this->_makeCall('media/search', false, array(
+			'lat' => $lat,
+			'lng' => $lng,
+			'distance' => $distance,
+			'min_timestamp' => $minTimestamp,
+			'max_timestamp' => $maxTimestamp
+		));
   }
 
   /**
@@ -244,14 +265,14 @@ class Instagram {
    * A media object's shortcode can be found in its shortlink URL.
    * An example shortlink is http://instagram.com/p/D/
    * Its corresponding shortcode is D.
-   * 
+   *
    * @param string $id                   Shortcode
    * @return mixed
    */
   public function getMediaShortcode($id) {
     return $this->_makeCall('media/shortcode/' . $id);
   }
-   
+
   /**
    * Get the most popular media
    *
@@ -264,17 +285,17 @@ class Instagram {
   /**
    * Search for tags by name
    *
-   * @param string $name                  Valid tag name
+   * @param string $q  Valid tag name
    * @return mixed
    */
-  public function searchTags($name) {
-    return $this->_makeCall('tags/search', false, array('q' => $name));
+  public function searchTags($q) {
+    return $this->_makeCall('tags/search', false, array('q' => $q));
   }
 
   /**
    * Get info about a tag
    *
-   * @param string $name                  Valid tag name
+   * @param string $name Valid tag name
    * @return mixed
    */
   public function getTag($name) {
@@ -292,7 +313,7 @@ class Instagram {
   public function getGeographies($geoid, $limit = 0, $minID = '') {
     return $this->_makeCall('geographies/' . $geoid . '/media/recent', false, array('count' => $limit, 'min_id' => $minID));
   }
-  
+
   /**
    * Get a recently tagged media
    *
@@ -302,8 +323,13 @@ class Instagram {
    * @param string [optional] $maxID      The maximum ID of returned results
    * @return mixed
    */
-  public function getTagMedia($name, $limit = 0, $minID=0, , $maxID=0) {
-    return $this->_makeCall('tags/' . $name . '/media/recent', false, array('count' => $limit, 'min_tag_id'=>$minID, , 'max_tag_id'=>$maxID));
+
+  public function getTagMedia($name, $count = 0, $minID = 0, $maxID = 0) {
+    return $this->_makeCall('tags/' . $name . '/media/recent', false, array(
+			'count' => $count,
+			'min_tag_id' => $minID,
+			'max_tag_id' => $maxID
+		));
   }
 
   /**
@@ -318,7 +344,7 @@ class Instagram {
 
   /**
    * Get a list of comments for this media
-   * 
+   *
    * @param integer $id                   Instagram media ID
    * @return mixed
    */
@@ -328,7 +354,7 @@ class Instagram {
 
   /**
    * Add a comment on a media
-   * 
+   *
    * @param integer $id                   Instagram media ID
    * @param string $text                  Comment content
    * @return mixed
@@ -339,7 +365,7 @@ class Instagram {
 
   /**
    * Remove user comment on a media
-   * 
+   *
    * @param integer $id                   Instagram media ID
    * @param string $commentID             User comment ID
    * @return mixed
@@ -382,10 +408,19 @@ class Instagram {
    * Get recent media from a given location
    *
    * @param integer $id                   Instagram location ID
+   * @param string [optional] $maxID      The maximum ID of returned results
+   * @param string [optional] $minID      The minimum ID of returned results
+   * @param long [optional] $minTimestamp Media taken later than this timestamp (default: 5 days ago)
+   * @param long [optional] $maxTimestamp Media taken earlier than this timestamp (default: now)
    * @return mixed
    */
-  public function getLocationMedia($id) {
-    return $this->_makeCall('locations/' . $id . '/media/recent', false);
+  public function getLocationMedia($id, $minID = 0, $maxID = 0, $minTimestamp = NULL, $maxTimestamp = NULL) {
+    return $this->_makeCall('locations/' . $id . '/media/recent', false, array(
+			'min_id' => $minID,
+			'max_id' => $maxID,
+			'min_timestamp' => $minTime,
+			'max_timestamp' => $maxTime
+		));
   }
 
   /**
@@ -402,12 +437,12 @@ class Instagram {
 
   /**
    * Pagination feature
-   * 
+   *
    * @param object  $obj                  Instagram object returned by a method
-   * @param integer $limit                Limit of returned results
+   * @param integer $count                Limit of returned results
    * @return mixed
    */
-  public function pagination($obj, $limit = 0) {
+  public function pagination($obj, $count = 0) {
     if (true === is_object($obj) && !is_null($obj->pagination)) {
       if (!isset($obj->pagination->next_url)) {
         return;
@@ -418,14 +453,10 @@ class Instagram {
       }
       $function = str_replace(self::API_URL, '', $apiCall[0]);
       $auth = (strpos($apiCall[1], 'access_token') !== false);
-      if (isset($obj->pagination->next_max_like_id)) {
-        return $this->_makeCall($function, $auth, array('max_like_id' => $obj->pagination->next_max_like_id, 'count' => $limit));
-      } elseif (isset($obj->pagination->next_max_tag_id)) {
-        return $this->_makeCall($function, $auth, array('max_tag_id' => $obj->pagination->next_max_tag_id, 'count' => $limit));
-      } elseif(isset($obj->pagination->next_max_id)) {
-        return $this->_makeCall($function, $auth, array('max_id' => $obj->pagination->next_max_id, 'count' => $limit));
+      if (isset($obj->pagination->next_max_id)) {
+        return $this->_makeCall($function, $auth, array('max_id' => $obj->pagination->next_max_id, 'count' => $count));
       } else {
-        return $this->_makeCall($function, $auth, array('cursor' => $obj->pagination->next_cursor, 'count' => $limit));
+        return $this->_makeCall($function, $auth, array('cursor' => $obj->pagination->next_cursor, 'count' => $count));
       }
     } else {
       throw new Exception("Error: pagination() | This method doesn't support pagination.");
@@ -447,7 +478,7 @@ class Instagram {
       'redirect_uri'    => $this->getApiCallback(),
       'code'            => $code
     );
-    
+
     $result = $this->_makeOAuthCall($apiData);
     return (false === $token) ? $result : $result->access_token;
   }
@@ -473,56 +504,57 @@ class Instagram {
         throw new Exception("Error: _makeCall() | $function - This method requires an authenticated users access token.");
       }
     }
-    
+
     if (isset($params) && is_array($params)) {
       $paramString = '&' . http_build_query($params);
     } else {
       $paramString = null;
     }
-    
+
     $apiCall = self::API_URL . $function . $authMethod . (('GET' === $method) ? $paramString : null);
-    
+
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $apiCall);
-    
-	// User IP
-	$ips = 0;
-	if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
-		$ips = $_SERVER['HTTP_CLIENT_IP'];
-	} elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-		$ips = $_SERVER['HTTP_X_FORWARDED_FOR'];
-	} else {
-		$ips = $_SERVER['REMOTE_ADDR'];
-	}
-	
-	// App Secret
-	$secret = $this->getApiSecret();
-	
-	// Signature
-	$signature = hash_hmac('sha256', $ips, $secret, false);
-	
-    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-		'Accept: application/json',
-		'X-Insta-Forwarded-For: ' . $ips . '|' . $signature
-	));
-	
+
+		// User IP
+		$ips = 0;
+		if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+			$ips = $_SERVER['HTTP_CLIENT_IP'];
+		} elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+			$ips = $_SERVER['HTTP_X_FORWARDED_FOR'];
+		} else {
+			$ips = $_SERVER['REMOTE_ADDR'];
+		}
+
+		// App Secret
+		$secret = $this->getApiSecret();
+
+		// Signature
+		$signature = hash_hmac('sha256', $ips, $secret, false);
+
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+			'Accept: application/json',
+			'X-Insta-Forwarded-For: ' . $ips . '|' . $signature
+		));
+
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 20);
+		curl_setopt($ch, CURLOPT_TIMEOUT, 90);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    
+
     if ('POST' === $method) {
       curl_setopt($ch, CURLOPT_POST, count($params));
       curl_setopt($ch, CURLOPT_POSTFIELDS, ltrim($paramString, '&'));
     } else if ('DELETE' === $method) {
       curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
     }
-    
+
     $jsonData = curl_exec($ch);
     if (false === $jsonData) {
       throw new Exception("Error: _makeCall() - cURL error: " . curl_error($ch));
     }
     curl_close($ch);
-    
+
     return json_decode($jsonData);
   }
 
@@ -534,7 +566,7 @@ class Instagram {
    */
   private function _makeOAuthCall($apiData) {
     $apiHost = self::API_OAUTH_TOKEN_URL;
-    
+
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $apiHost);
     curl_setopt($ch, CURLOPT_POST, count($apiData));
@@ -542,19 +574,20 @@ class Instagram {
     curl_setopt($ch, CURLOPT_HTTPHEADER, array('Accept: application/json'));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    
+		curl_setopt($ch, CURLOPT_TIMEOUT, 90);
+
     $jsonData = curl_exec($ch);
     if (false === $jsonData) {
       throw new Exception("Error: _makeOAuthCall() - cURL error: " . curl_error($ch));
     }
     curl_close($ch);
-    
+
     return json_decode($jsonData);
   }
 
   /**
    * Access Token Setter
-   * 
+   *
    * @param object|string $data
    * @return void
    */
@@ -565,7 +598,7 @@ class Instagram {
 
   /**
    * Access Token Getter
-   * 
+   *
    * @return string
    */
   public function getAccessToken() {
@@ -574,7 +607,7 @@ class Instagram {
 
   /**
    * API-key Setter
-   * 
+   *
    * @param string $apiKey
    * @return void
    */
@@ -584,7 +617,7 @@ class Instagram {
 
   /**
    * API Key Getter
-   * 
+   *
    * @return string
    */
   public function getApiKey() {
@@ -593,8 +626,8 @@ class Instagram {
 
   /**
    * API Secret Setter
-   * 
-   * @param string $apiSecret 
+   *
+   * @param string $apiSecret
    * @return void
    */
   public function setApiSecret($apiSecret) {
@@ -603,16 +636,16 @@ class Instagram {
 
   /**
    * API Secret Getter
-   * 
+   *
    * @return string
    */
   public function getApiSecret() {
     return $this->_apisecret;
   }
-  
+
   /**
    * API Callback URL Setter
-   * 
+   *
    * @param string $apiCallback
    * @return void
    */
@@ -622,7 +655,7 @@ class Instagram {
 
   /**
    * API Callback URL Getter
-   * 
+   *
    * @return string
    */
   public function getApiCallback() {
