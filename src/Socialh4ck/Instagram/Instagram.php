@@ -113,6 +113,7 @@ class Instagram {
    */
   public function searchUser($q, $count = 0) {
     return $this->_makeCall('users/search', false, array(
+
 			'q' => $q,
 			'count' => $count
 		));
@@ -126,6 +127,7 @@ class Instagram {
    */
   public function getUser($id = 0) {
     $auth = false;
+
     if ($id === 0 && isset($this->_accesstoken)) {
 			$id = 'self';
 			$auth = true;
@@ -141,7 +143,8 @@ class Instagram {
    * @param string [optional] $minID      The minimum ID of returned results
    * @return mixed
    */
-  public function getUserFeed($count = 0, $minID = 0, $maxID = 0) {
+
+  public function getUserFeed($count = 0, $minID = null, $maxID = null) {
     return $this->_makeCall('users/self/feed', true, array(
 			'count' => $count,
 			'min_id' => $minID,
@@ -152,19 +155,19 @@ class Instagram {
   /**
    * Get user recent media
    *
-   * @param integer [optional] $id        Instagram user ID
-   * @param integer [optional] $count     Limit of returned results
-   * @param string [optional] $maxTime    The maximum timestamp of returned results
-   * @param string [optional] $minTime    The minimum timestamp of returned results
-   * @param string [optional] $maxID      The maximum ID of returned results
-   * @param string [optional] $minID      The minimum ID of returned results
+   * @param integer [optional] $id             Instagram user ID
+   * @param integer [optional] $count          Limit of returned results
+   * @param string [optional] $maxTimestamp    The maximum timestamp of returned results
+   * @param string [optional] $minTimestamp    The minimum timestamp of returned results
+   * @param string [optional] $maxID           The maximum ID of returned results
+   * @param string [optional] $minID           The minimum ID of returned results
    * @return mixed
    */
-  public function getUserMedia($id = 'self', $count = 0, $maxTime = '', $minTime = '', $minID = 0, $maxID = 0) {
+  public function getUserMedia($id = 'self', $count = 0, $maxTimestamp = null, $minTimestamp = null, $minID = null, $maxID = null) {
     return $this->_makeCall('users/' . $id . '/media/recent', true, array(
 			'count' => $count,
-			'min_timestamp' => $minTime,
-			'max_timestamp' => $maxTime,
+			'min_timestamp' => $minTimestamp,
+			'max_timestamp' => $maxTimestamp,
 			'min_id' => $minID,
 			'max_id' => $maxID
 		));
@@ -177,7 +180,7 @@ class Instagram {
    * @param string [optional] $maxID      The maximum ID of returned results
    * @return mixed
    */
-  public function getUserLikes($count = 0, $maxID = 0) {
+  public function getUserLikes($count = 0, $maxID = null) {
     return $this->_makeCall('users/self/media/liked', true, array(
 			'count' => $count,
 			'max_like_id' => $maxID
@@ -240,7 +243,8 @@ class Instagram {
    * @param long [optional] $maxTimestamp Media taken earlier than this timestamp (default: now)
    * @return mixed
    */
-  public function searchMedia($lat, $lng, $distance = 1000, $minTimestamp = NULL, $maxTimestamp = NULL) {
+
+  public function searchMedia($lat, $lng, $distance = 1000, $minTimestamp = null, $maxTimestamp = null) {
     return $this->_makeCall('media/search', false, array(
 			'lat' => $lat,
 			'lng' => $lng,
@@ -318,13 +322,12 @@ class Instagram {
    * Get a recently tagged media
    *
    * @param string $name                  Valid tag name
-   * @param integer [optional] $limit     Limit of returned results
+   * @param integer [optional] $count     Limit of returned results
    * @param string [optional] $minID      The minimum ID of returned results
-   * @param string [optional] $maxID      The maximum ID of returned results
+	 * @param string [optional] $maxID      The maximum ID of returned results
    * @return mixed
    */
-
-  public function getTagMedia($name, $count = 0, $minID = 0, $maxID = 0) {
+  public function getTagMedia($name, $count = 0, $minID = null, $maxID = null) {
     return $this->_makeCall('tags/' . $name . '/media/recent', false, array(
 			'count' => $count,
 			'min_tag_id' => $minID,
@@ -414,12 +417,12 @@ class Instagram {
    * @param long [optional] $maxTimestamp Media taken earlier than this timestamp (default: now)
    * @return mixed
    */
-  public function getLocationMedia($id, $minID = 0, $maxID = 0, $minTimestamp = NULL, $maxTimestamp = NULL) {
+  public function getLocationMedia($id, $minID = null, $maxID = null, $minTimestamp = null, $maxTimestamp = null) {
     return $this->_makeCall('locations/' . $id . '/media/recent', false, array(
 			'min_id' => $minID,
 			'max_id' => $maxID,
-			'min_timestamp' => $minTime,
-			'max_timestamp' => $maxTime
+			'min_timestamp' => $minTimestamp,
+			'max_timestamp' => $maxTimestamp
 		));
   }
 
@@ -442,21 +445,22 @@ class Instagram {
    * @param integer $count                Limit of returned results
    * @return mixed
    */
-  public function pagination($obj, $count = 0) {
-    if (true === is_object($obj) && !is_null($obj->pagination)) {
-      if (!isset($obj->pagination->next_url)) {
+  public function pagination($data, $count = 0) {
+    if (!is_null($data['pagination'])) {
+      if (!isset($data['pagination']['next_url'])) {
         return;
       }
-      $apiCall = explode('?', $obj->pagination->next_url);
+      $apiCall = explode('?', $data['pagination']['next_url']);
       if (count($apiCall) < 2) {
         return;
       }
       $function = str_replace(self::API_URL, '', $apiCall[0]);
       $auth = (strpos($apiCall[1], 'access_token') !== false);
-      if (isset($obj->pagination->next_max_id)) {
-        return $this->_makeCall($function, $auth, array('max_id' => $obj->pagination->next_max_id, 'count' => $count));
+
+      if (isset($data['pagination']['next_max_id'])) {
+        return $this->_makeCall($function, $auth, array('max_id' => $data['pagination']['next_max_id'], 'count' => $count));
       } else {
-        return $this->_makeCall($function, $auth, array('cursor' => $obj->pagination->next_cursor, 'count' => $count));
+        return $this->_makeCall($function, $auth, array('cursor' => $data['pagination']['next_cursor'], 'count' => $count));
       }
     } else {
       throw new Exception("Error: pagination() | This method doesn't support pagination.");
@@ -515,7 +519,6 @@ class Instagram {
 
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $apiCall);
-
 		// User IP
 		$ips = 0;
 		if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
@@ -538,7 +541,7 @@ class Instagram {
 		));
 
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 20);
-		curl_setopt($ch, CURLOPT_TIMEOUT, 90);
+	curl_setopt($ch, CURLOPT_TIMEOUT, 90);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
@@ -555,7 +558,20 @@ class Instagram {
     }
     curl_close($ch);
 
-    return json_decode($jsonData);
+		// we expect JSON, so decode it
+		$json = @json_decode($jsonData, true);
+
+		// validate JSON
+		if ($json === null) {
+			throw new Exception('Invalid response.');
+		}
+
+		// any error
+		if (isset($json['error_type'])) {
+			throw new Exception($json);
+		}
+
+		return (array) $json;
   }
 
   /**
